@@ -26,6 +26,7 @@ struct DefaultOpenAIService: OpenAIService {
       apiKey: String,
       organizationID: String? = nil,
       baseURL: String? = nil,
+      proxyPath: String? = nil,
       configuration: URLSessionConfiguration = .default,
       decoder: JSONDecoder = .init(),
       debugEnabled: Bool)
@@ -35,6 +36,7 @@ struct DefaultOpenAIService: OpenAIService {
       self.apiKey = .bearer(apiKey)
       self.organizationID = organizationID
       OpenAIAPI.overrideBaseURL = baseURL
+      OpenAIAPI.proxyPath = proxyPath
       self.debugEnabled = debugEnabled
    }
    
@@ -391,6 +393,15 @@ struct DefaultOpenAIService: OpenAIService {
    {
       let request = try OpenAIAPI.message(.modify(threadID: threadID, messageID: messageID)).request(apiKey: apiKey, organizationID: organizationID, method: .post, params: parameters, betaHeaderField: Self.assistantsBetaV2)
       return try await fetch(debugEnabled: debugEnabled, type: MessageObject.self, with: request)
+   }
+   
+   func deleteMessage(
+      threadID: String,
+      messageID: String)
+      async throws -> DeletionStatus
+   {
+      let request = try OpenAIAPI.message(.delete(threadID: threadID, messageID: messageID)).request(apiKey: apiKey, organizationID: organizationID, method: .delete, betaHeaderField: Self.assistantsBetaV2)
+      return try await fetch(debugEnabled: debugEnabled, type: DeletionStatus.self, with: request)
    }
    
    func listMessages(
